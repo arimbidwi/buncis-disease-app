@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 5
+names: ['0', 'embun tepung', 'hawar', 'mozaik', 'sehat']
+
+roboflow:
+  workspace: feby-uparm
+  project: tanaman-daun-buncis
+  version: 27
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/feby-uparm/tanaman-daun-buncis/dataset/27

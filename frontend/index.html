@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuncisScan — Deteksi Dini Penyakit Daun Kacang Buncis</title>
+<meta name="description" content="Pindai daun kacang buncis dan dapatkan diagnosis penyakit beserta rekomendasi penanganan secara instan, didukung model deteksi objek YOLOv11.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2312211B'/%3E%3Cpath d='M24 8C13 12 9 24 13 34c3 7 8 9 11 9s8-2 11-9c4-10 0-22-11-26z' fill='none' stroke='%239FD356' stroke-width='2.4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#12211B"/>
+        <path d="M16 6c-7 3-10 12-7 19 2 5 6 6 7 6s5-1 7-6c3-7 0-16-7-19z" fill="none" stroke="#9FD356" stroke-width="2"/>
+      </svg>
+      <span>Buncis<b>Scan</b></span>
+    </a>
+    <div class="navbar-links">
+      <a href="#pindai">Pindai</a>
+      <a href="#cara-kerja">Cara Kerja</a>
+      <a href="#tentang">Tentang</a>
+      <a href="#riwayat">Riwayat</a>
+    </div>
+    <span class="navbar-tag">YOLOv11</span>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <span class="eyebrow">Instrumen Deteksi Presisi &middot; Object Detection YOLOv11</span>
+    <h1>Deteksi dini penyakit daun<br>kacang buncis, dalam hitungan detik.</h1>
+    <p class="lede">Ambil atau unggah foto daun — sistem membaca pola visual
+    lesi secara otomatis dan menampilkan diagnosis lengkap dengan tingkat
+    keyakinan serta langkah penanganan yang bisa langsung ditindaklanjuti.</p>
+
+    <div class="hero-cta">
+      <a href="#pindai" class="btn btn--primary btn--hero">Mulai Pindai</a>
+      <a href="#cara-kerja" class="btn btn--ghost btn--hero btn--hero-ghost">Lihat Cara Kerja</a>
+    </div>
+
+    <div class="class-chips">
+      <span class="chip"><i class="chip-dot dot--healthy"></i>Sehat</span>
+      <span class="chip"><i class="chip-dot dot--mildew"></i>Embun Tepung</span>
+      <span class="chip"><i class="chip-dot dot--blight"></i>Hawar Daun</span>
+      <span class="chip"><i class="chip-dot dot--mosaic"></i>Mosaik</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= SCAN + RESULT ================= -->
+<main class="layout" id="pindai">
+
+  <section class="panel scan-card">
+    <div class="panel-head">
+      <span class="panel-index">01</span>
+      <div>
+        <h2>Pindai Daun</h2>
+        <p class="panel-sub">Foto jelas, cukup cahaya, fokus pada permukaan daun</p>
+      </div>
+    </div>
+
+    <div class="viewfinder" id="viewfinder" tabindex="0">
+      <span class="bracket bracket--tl"></span>
+      <span class="bracket bracket--tr"></span>
+      <span class="bracket bracket--bl"></span>
+      <span class="bracket bracket--br"></span>
+
+      <input type="file" accept="image/*" id="fileInput" hidden>
+
+      <div class="viewfinder-empty" id="viewfinderEmpty">
+        <svg viewBox="0 0 48 48" width="34" height="34"><path d="M24 6l10 10h-6v16h-8V16h-6z" fill="currentColor"/><rect x="6" y="36" width="36" height="6" rx="2" fill="currentColor"/></svg>
+        <p>Seret foto ke sini, klik untuk memilih,<br>atau tempel (Ctrl+V)</p>
+      </div>
+
+      <div class="image-stage" id="imageStage" hidden>
+        <img class="preview-img" id="previewImg" alt="Pratinjau daun">
+        <div class="bbox-layer" id="bboxLayer"></div>
+      </div>
+
+      <div class="scan-line" id="scanLine" hidden></div>
+      <video class="camera-feed" id="cameraFeed" autoplay playsinline hidden></video>
+    </div>
+
+    <div class="scan-actions">
+      <button class="btn btn--ghost" id="pickBtn" type="button">
+        <svg viewBox="0 0 20 20" width="16" height="16"><path d="M10 3v10M5 8l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 14v2a1 1 0 001 1h12a1 1 0 001-1v-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Pilih Foto
+      </button>
+      <button class="btn btn--ghost" id="cameraBtn" type="button">
+        <svg viewBox="0 0 20 20" width="16" height="16"><path d="M3 7a1 1 0 011-1h1.6l.7-1.4A1 1 0 017.2 4h5.6a1 1 0 01.9.6L14.4 6H16a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10" cy="11" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        Ambil dari Kamera
+      </button>
+    </div>
+
+    <button class="btn btn--primary analyze-btn" id="analyzeBtn" disabled type="button">Analisis Gambar</button>
+
+    <div class="readout-strip" id="readoutStrip">
+      <span>KEYAKINAN <b id="readoutConf">—</b></span>
+      <span>DETEKSI <b id="readoutCount">—</b></span>
+      <span>WAKTU <b id="readoutTime">—</b></span>
+    </div>
+  </section>
+
+  <section class="panel result-card">
+    <div class="panel-head">
+      <span class="panel-index">02</span>
+      <div>
+        <h2>Diagnosis</h2>
+        <p class="panel-sub">Hasil analisis model muncul di sini</p>
+      </div>
+    </div>
+
+    <div class="result-empty" id="resultEmpty">
+      <svg viewBox="0 0 48 48" width="30" height="30"><circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="2"/><path d="M24 16v10M24 31h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <p>Belum ada hasil. Pindai daun terlebih dahulu untuk melihat diagnosis
+      lengkap di panel ini.</p>
+    </div>
+
+    <div class="result-content" id="resultContent" hidden>
+      <div class="gauge-row">
+        <svg class="gauge" viewBox="0 0 120 120" width="112" height="112">
+          <circle class="gauge-track" cx="60" cy="60" r="52"></circle>
+          <circle class="gauge-fill" id="gaugeFill" cx="60" cy="60" r="52"></circle>
+          <text class="gauge-text" id="gaugeText" x="60" y="66" text-anchor="middle">0%</text>
+        </svg>
+        <div class="gauge-info">
+          <span class="risk-badge" id="riskBadge">—</span>
+          <h3 class="result-label" id="resultLabel">—</h3>
+          <p class="result-sub" id="resultSub">Indeks keyakinan model</p>
+        </div>
+      </div>
+
+      <div class="prob-bars" id="probBars"></div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="kondisi" role="tab">Kondisi</button>
+        <button class="tab-btn" data-tab="penanganan" role="tab">Penanganan</button>
+        <button class="tab-btn" data-tab="deteksi" role="tab">Deteksi</button>
+        <span class="tab-underline"></span>
+      </div>
+
+      <div class="tab-panel active" data-panel="kondisi">
+        <p class="cause-text" id="causeText"></p>
+      </div>
+
+      <div class="tab-panel" data-panel="penanganan">
+        <div class="checklist-progress"><div class="checklist-progress-fill" id="checklistProgress"></div></div>
+        <ul class="checklist" id="checklist"></ul>
+      </div>
+
+      <div class="tab-panel" data-panel="deteksi">
+        <ul class="detection-list" id="detectionList"></ul>
+        <button class="btn btn--ghost download-btn" id="downloadBtn" type="button">Unduh Gambar Beranotasi</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================= CARA KERJA ================= -->
+<section class="how" id="cara-kerja">
+  <div class="how-inner">
+    <span class="section-eyebrow">Alur Kerja</span>
+    <h2 class="section-title">Tiga langkah menuju diagnosis</h2>
+
+    <div class="how-grid">
+      <div class="how-step">
+        <span class="how-number">01</span>
+        <h3>Ambil atau Unggah Foto</h3>
+        <p>Gunakan kamera perangkat langsung di lapangan, atau unggah foto
+        daun yang sudah ada. Pastikan bagian bergejala terlihat jelas.</p>
+      </div>
+      <div class="how-step">
+        <span class="how-number">02</span>
+        <h3>Model YOLOv11 Menganalisis</h3>
+        <p>Sistem mendeteksi lokasi dan jenis lesi pada daun secara otomatis,
+        lalu menghitung tingkat keyakinan untuk tiap kemungkinan kondisi.</p>
+      </div>
+      <div class="how-step">
+        <span class="how-number">03</span>
+        <h3>Dapatkan Rekomendasi</h3>
+        <p>Hasil ditampilkan lengkap dengan penyebab, kondisi, dan langkah
+        penanganan yang bisa langsung dicentang saat dikerjakan.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HISTORY ================= -->
+<section class="history" id="riwayat">
+  <div class="history-head">
+    <h2>Riwayat Pindai</h2>
+    <button class="btn btn--text" id="clearHistoryBtn" type="button">Hapus riwayat</button>
+  </div>
+  <div class="history-strip" id="historyStrip">
+    <p class="history-empty" id="historyEmpty">Riwayat pemindaian di perangkat ini akan muncul di sini.</p>
+  </div>
+</section>
+
+<!-- ================= TENTANG ================= -->
+<section class="about" id="tentang">
+  <div class="about-inner">
+    <div class="about-text">
+      <span class="section-eyebrow">Tentang Model</span>
+      <h2 class="section-title">Dibangun di atas YOLOv11</h2>
+      <p>BuncisScan menggunakan model deteksi objek YOLOv11 (Ultralytics) yang
+      dilatih khusus untuk mengenali empat kondisi daun kacang buncis: sehat,
+      embun tepung, hawar daun, dan mosaik. Model membaca lokasi serta pola
+      visual lesi, bukan sekadar mengklasifikasi gambar secara keseluruhan —
+      sehingga bisa menunjukkan tepat di mana gejala muncul pada daun.</p>
+      <p class="disclaimer">Alat ini adalah bantuan skrining awal, bukan
+      pengganti diagnosis ahli pertanian atau penyuluh lapangan. Untuk kasus
+      serangan berat atau meragukan, tetap konsultasikan ke penyuluh
+      pertanian setempat.</p>
+    </div>
+    <dl class="about-stats">
+      <div><dt>Model</dt><dd>YOLOv11</dd></div>
+      <div><dt>Kelas Terdeteksi</dt><dd>4 kondisi</dd></div>
+      <div><dt>Proses</dt><dd>Lokal &amp; instan</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer class="footer">
+  <div class="footer-inner">
+    <a class="brand brand--footer" href="#top">
+      <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#1B2B22"/>
+        <path d="M16 6c-7 3-10 12-7 19 2 5 6 6 7 6s5-1 7-6c3-7 0-16-7-19z" fill="none" stroke="#9FD356" stroke-width="2"/>
+      </svg>
+      <span>Buncis<b>Scan</b></span>
+    </a>
+    <p class="footer-note">Alat bantu skrining awal penyakit daun kacang buncis &middot; bukan pengganti diagnosis ahli pertanian.</p>
+  </div>
+</footer>
+
+<!-- ================= CAMERA MODAL ================= -->
+<div class="modal" id="cameraModal" hidden>
+  <div class="modal-inner">
+    <video class="modal-video" id="modalVideo" autoplay playsinline></video>
+    <canvas id="captureCanvas" hidden></canvas>
+    <div class="modal-actions">
+      <button class="btn btn--ghost" id="closeCameraBtn" type="button">Batal</button>
+      <button class="btn btn--primary" id="captureBtn" type="button">Jepret</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
